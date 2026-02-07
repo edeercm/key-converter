@@ -9,7 +9,7 @@ function convertUUID() {
     const input = document.getElementById('uuidInput').value.trim();
     
     if (!input) {
-        showError('Por favor ingresa un UUID/Key válido');
+        showError('Por favor ingresa una Key válida');
         return;
     }
 
