@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertidor de Claves Criptográficas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">🔐 Convertidor de Claves</h1>
+            <p class="text-blue-200">Conversión segura client-side - Nada se envía a servidores</p>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="bg-green-900/30 border border-green-500 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 text-green-400 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                    <h3 class="text-green-300 font-semibold">Procesamiento 100% Local</h3>
+                    <p class="text-green-200 text-sm">Todas las conversiones se realizan en tu navegador. Tus claves nunca salen de tu dispositivo.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
+            
+            <!-- UUID to AES-256 Section -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
+                    <span class="bg-blue-500 rounded-full w-8 h-8 flex items-center justify-center text-sm mr-3">1</span>
+                    UUID → AES-256 (64 hex digits)
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-blue-200 mb-2 font-medium">Ingresa tu UUID/Key:</label>
+                        <input 
+                            type="text" 
+                            id="uuidInput" 
+                            placeholder="8d536241-35w5-4216-8085-39a8d3cwa9be"
+                            class="w-full px-4 py-3 bg-white/5 border border-blue-400/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                        />
+                    </div>
+                    
+                    <button 
+                        onclick="convertUUID()" 
+                        class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
+                        Convertir a AES-256
+                    </button>
+                    
+                    <div id="aesResult" class="hidden">
+                        <label class="block text-green-300 mb-2 font-medium">Resultado AES-256 (64 hex):</label>
+                        <div class="bg-gray-900/50 rounded-lg p-4 border border-green-500/30">
+                            <code id="aesOutput" class="text-green-400 break-all text-sm"></code>
+                        </div>
+                        <button 
+                            onclick="copyToClipboard('aesOutput')" 
+                            class="mt-2 text-blue-300 hover:text-blue-100 text-sm flex items-center">
+                            📋 Copiar al portapapeles
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t border-white/20 my-8"></div>
+
+            <!-- Base64 to HMAC-256 Section -->
+            <div>
+                <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
+                    <span class="bg-purple-500 rounded-full w-8 h-8 flex items-center justify-center text-sm mr-3">2</span>
+                    Base64 → HMAC-256 (64 hex digits)
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-blue-200 mb-2 font-medium">Ingresa tu Shared Secret (Base64):</label>
+                        <input 
+                            type="text" 
+                            id="base64Input" 
+                            placeholder="eHL4CvENDChAOqiVskT0r6uS3XKY/RCEi6XE8SzlBic="
+                            class="w-full px-4 py-3 bg-white/5 border border-purple-400/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                        />
+                    </div>
+                    
+                    <button 
+                        onclick="convertBase64()" 
+                        class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
+                        Convertir a HMAC-256
+                    </button>
+                    
+                    <div id="hmacResult" class="hidden">
+                        <label class="block text-green-300 mb-2 font-medium">Resultado HMAC-256 (64 hex):</label>
+                        <div class="bg-gray-900/50 rounded-lg p-4 border border-green-500/30">
+                            <code id="hmacOutput" class="text-green-400 break-all text-sm"></code>
+                        </div>
+                        <button 
+                            onclick="copyToClipboard('hmacOutput')" 
+                            class="mt-2 text-purple-300 hover:text-purple-100 text-sm flex items-center">
+                            📋 Copiar al portapapeles
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden mt-6 bg-red-900/30 border border-red-500 rounded-lg p-4">
+                <p class="text-red-300" id="errorText"></p>
+            </div>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="mt-8 text-center text-blue-300 text-sm">
+            <p>🔒 Todas las operaciones son realizadas localmente en tu navegador</p>
+            <p class="mt-2 text-blue-400/60">No se almacena ni transmite ninguna información</p>
+        </div>
+    </div>
+
+    <script>
+        // Función para convertir UUID a AES-256 (SHA-256 hash en hex)
+        function convertUUID() {
+            const input = document.getElementById('uuidInput').value.trim();
+            
+            if (!input) {
+                showError('Por favor ingresa un UUID/Key válido');
+                return;
+            }
+
+            try {
+                // Generar SHA-256 hash del UUID
+                const hash = CryptoJS.SHA256(input);
+                const hexResult = hash.toString(CryptoJS.enc.Hex);
+                
+                // Mostrar resultado
+                document.getElementById('aesOutput').textContent = hexResult;
+                document.getElementById('aesResult').classList.remove('hidden');
+                hideError();
+                
+                console.log('UUID convertido exitosamente');
+            } catch (error) {
+                showError('Error al procesar el UUID: ' + error.message);
+            }
+        }
+
+        // Función para convertir Base64 a HMAC-256 (SHA-256 hash en hex)
+        function convertBase64() {
+            const input = document.getElementById('base64Input').value.trim();
+            
+            if (!input) {
+                showError('Por favor ingresa un Shared Secret válido');
+                return;
+            }
+
+            try {
+                // Decodificar Base64
+                const decoded = CryptoJS.enc.Base64.parse(input);
+                
+                // Generar SHA-256 hash
+                const hash = CryptoJS.SHA256(decoded);
+                const hexResult = hash.toString(CryptoJS.enc.Hex);
+                
+                // Mostrar resultado
+                document.getElementById('hmacOutput').textContent = hexResult;
+                document.getElementById('hmacResult').classList.remove('hidden');
+                hideError();
+                
+                console.log('Base64 convertido exitosamente');
+            } catch (error) {
+                showError('Error al procesar el Base64: ' + error.message);
+            }
+        }
+
+        // Función para copiar al portapapeles
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                // Feedback visual
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✅ ¡Copiado!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                showError('Error al copiar: ' + err.message);
+            });
+        }
+
+        // Función para mostrar errores
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').classList.remove('hidden');
+        }
+
+        // Función para ocultar errores
+        function hideError() {
+            document.getElementById('errorMessage').classList.add('hidden');
+        }
+
+        // Limpiar campos al presionar Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.getElementById('uuidInput').value = '';
+                document.getElementById('base64Input').value = '';
+                document.getElementById('aesResult').classList.add('hidden');
+                document.getElementById('hmacResult').classList.add('hidden');
+                hideError();
+            }
+        });
+    </script>
+</body>
+</html>
