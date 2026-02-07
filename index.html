@@ -40,7 +40,7 @@
                 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-blue-200 mb-2 font-medium">Ingresa tu Key:</label>
+                        <label class="block text-blue-200 mb-2 font-medium">Ingresa tu UUID/Key:</label>
                         <input 
                             type="text" 
                             id="uuidInput" 
@@ -81,7 +81,7 @@
                 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-blue-200 mb-2 font-medium">Ingresa tu Shared Secret:</label>
+                        <label class="block text-blue-200 mb-2 font-medium">Ingresa tu Shared Secret (Base64):</label>
                         <input 
                             type="text" 
                             id="base64Input" 
@@ -122,6 +122,9 @@
             <p class="mt-2 text-blue-400/60">No se almacena ni transmite ninguna información</p>
         </div>
     </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
     <!-- External JavaScript -->
     <script src="script.js"></script>
