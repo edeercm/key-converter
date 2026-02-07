@@ -9,7 +9,6 @@ function convertUUID() {
     const input = document.getElementById('uuidInput').value.trim();
     
     if (!input) {
-        showToast('⚠️ Por favor ingresa un UUID válido', 'warning');
         showError('Por favor ingresa un UUID/Key válido');
         return;
     }
@@ -24,11 +23,9 @@ function convertUUID() {
         document.getElementById('aesResult').classList.remove('hidden');
         hideError();
         
-        showToast('✨ UUID convertido exitosamente', 'success');
         console.log('UUID convertido exitosamente');
         console.log('Longitud:', hexResult.length, 'caracteres');
     } catch (error) {
-        showToast('❌ Error al procesar UUID', 'error');
         showError('Error al procesar el UUID: ' + error.message);
         console.error('Error en convertUUID:', error);
     }
@@ -41,7 +38,6 @@ function convertBase64() {
     const input = document.getElementById('base64Input').value.trim();
     
     if (!input) {
-        showToast('⚠️ Por favor ingresa un Shared Secret válido', 'warning');
         showError('Por favor ingresa un Shared Secret válido');
         return;
     }
@@ -59,70 +55,34 @@ function convertBase64() {
         document.getElementById('hmacResult').classList.remove('hidden');
         hideError();
         
-        showToast('✨ Base64 convertido exitosamente', 'success');
         console.log('Base64 convertido exitosamente');
         console.log('Longitud:', hexResult.length, 'caracteres');
     } catch (error) {
-        showToast('❌ Error al procesar Base64', 'error');
         showError('Error al procesar el Base64: ' + error.message);
         console.error('Error en convertBase64:', error);
     }
 }
 
 /**
- * Copia texto al portapapeles con toast notification
+ * Copia texto al portapapeles
  * @param {string} elementId - ID del elemento que contiene el texto a copiar
  */
 function copyToClipboard(elementId) {
     const text = document.getElementById(elementId).textContent;
     
     navigator.clipboard.writeText(text).then(() => {
-        // Mostrar toast notification
-        showToast('✅ ¡Copiado al portapapeles!', 'success');
-        console.log('Texto copiado:', text.substring(0, 20) + '...');
+        // Feedback visual
+        const button = event.target;
+        const originalText = button.textContent;
+        button.textContent = '✅ ¡Copiado!';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+        }, 2000);
     }).catch(err => {
-        showToast('❌ Error al copiar', 'error');
         showError('Error al copiar: ' + err.message);
         console.error('Error en copyToClipboard:', err);
     });
-}
-
-/**
- * Muestra una toast notification
- * @param {string} message - Mensaje a mostrar
- * @param {string} type - Tipo de notificación: 'success', 'error', 'info', 'warning'
- */
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    
-    // Crear el toast
-    const toast = document.createElement('div');
-    toast.className = `transform transition-all duration-300 ease-in-out translate-x-0 opacity-100`;
-    
-    // Colores según el tipo
-    const colors = {
-        success: 'bg-green-500 border-green-600',
-        error: 'bg-red-500 border-red-600',
-        info: 'bg-blue-500 border-blue-600',
-        warning: 'bg-yellow-500 border-yellow-600'
-    };
-    
-    toast.innerHTML = `
-        <div class="${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg border-l-4 flex items-center space-x-3 min-w-[250px]">
-            <span class="font-medium">${message}</span>
-            <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-white hover:text-gray-200">
-                ✕
-            </button>
-        </div>
-    `;
-    
-    container.appendChild(toast);
-    
-    // Auto-remove después de 3 segundos
-    setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-x-full');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
 }
 
 /**
