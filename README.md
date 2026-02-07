@@ -1,2 +1,12 @@
-# key-converter
-🔐 Convertidor seguro de claves criptográficas a formatos hexadecimales. Convierte UUID a AES-256 y Base64 a HMAC-256. Procesamiento 100% client-side sin enviar datos a servidores.
+# Crypto Key Converter
+
+Aplicación web para convertir claves criptográficas de forma segura.
+
+## Características
+- Conversión UUID → AES-256 (64 hex)
+- Conversión Base64 → HMAC-256 (64 hex)
+- 100% procesamiento client-side
+- Sin almacenamiento de datos
+
+## Demo
+[Enlace a tu sitio en Netlify - agregar después del deploy]
