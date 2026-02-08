@@ -3,19 +3,22 @@
 // ========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Referencias a elementos del DOM
+    // --- Referencias a elementos del DOM ---
     const uuidInput = document.getElementById('uuidInput');
     const base64Input = document.getElementById('base64Input');
+    
+    // Botones de conversión
     const btnConvertUUID = document.getElementById('btnConvertUUID');
     const btnConvertBase64 = document.getElementById('btnConvertBase64');
+    
+    // Botones de copiado (Nuevos IDs agregados en el HTML)
+    const btnCopyAES = document.getElementById('btnCopyAES');
+    const btnCopyHMAC = document.getElementById('btnCopyHMAC');
 
-    // --- Funciones de Utilidad Visual ---
+    // --- Funciones de Utilidad ---
 
     /**
-     * Muestra u oculta errores específicos por campo y altera estilos
-     * @param {HTMLElement} inputElement - El input que tiene el error
-     * @param {HTMLElement} errorElement - El elemento <p> del mensaje de error
-     * @param {string|null} message - El mensaje a mostrar (null para ocultar)
+     * Muestra u oculta errores y gestiona estilos del input
      */
     const toggleError = (inputElement, errorElement, message) => {
         if (message) {
@@ -23,16 +26,17 @@ document.addEventListener('DOMContentLoaded', () => {
             errorElement.querySelector('span').textContent = message;
             errorElement.classList.remove('hidden');
             
-            // Estilo de error en el input (borde rojo y fondo rojizo)
+            // Estilo de error (rojo)
             inputElement.classList.add('border-red-500', 'bg-red-900/10');
             inputElement.classList.remove('border-blue-400/30', 'border-purple-400/30');
         } else {
             // Ocultar error
             errorElement.classList.add('hidden');
             
-            // Restaurar estilos originales
+            // Restaurar estilos (quitar rojo)
             inputElement.classList.remove('border-red-500', 'bg-red-900/10');
-            // Re-agregar el borde azul o morado según corresponda (simple check por ID)
+            
+            // Restaurar borde original según el tipo de input
             if(inputElement.id === 'uuidInput') {
                 inputElement.classList.add('border-blue-400/30');
             } else {
@@ -41,15 +45,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- Lógica de Negocio ---
+    /**
+     * Maneja el copiado al portapapeles de forma segura
+     * @param {string} textId - ID del elemento que contiene el texto
+     * @param {HTMLElement} btnElement - El botón que fue presionado
+     * @param {string} originalColorClass - Clase de color original para restaurar (ej: text-blue-300)
+     */
+    const handleCopy = async (textId, btnElement, originalColorClass) => {
+        const text = document.getElementById(textId).textContent;
+        if (!text) return; // No hacer nada si está vacío
 
-    const handleUuidConversion = () => {
+        try {
+            // Intentar copiar
+            await navigator.clipboard.writeText(text);
+            
+            // Feedback Visual (Éxito)
+            const originalHTML = btnElement.innerHTML;
+            btnElement.textContent = '✅ ¡Copiado!';
+            
+            // Cambiar colores
+            btnElement.classList.remove(originalColorClass);
+            btnElement.classList.add('text-green-400');
+            
+            // Restaurar después de 2 segundos
+            setTimeout(() => {
+                btnElement.innerHTML = originalHTML;
+                btnElement.classList.remove('text-green-400');
+                btnElement.classList.add(originalColorClass);
+            }, 2000);
+
+        } catch (err) {
+            console.error('Error al copiar:', err);
+            // Feedback Visual (Error discreto en el botón, sin popup)
+            const originalText = btnElement.textContent;
+            btnElement.textContent = '❌ Error';
+            setTimeout(() => btnElement.textContent = originalText, 2000);
+        }
+    };
+
+    // --- Lógica de Conversión ---
+
+    const processUUID = () => {
         const input = uuidInput.value.trim();
         const errorEl = document.getElementById('uuidError');
         const outputEl = document.getElementById('aesOutput');
         const resultDiv = document.getElementById('aesResult');
 
-        // Validación
         if (!input) {
             toggleError(uuidInput, errorEl, "Campo requerido");
             resultDiv.classList.add('hidden');
@@ -57,30 +98,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            toggleError(uuidInput, errorEl, null); // Limpiar errores previos
+            toggleError(uuidInput, errorEl, null); // Limpiar error
             
-            // Generar SHA-256 hash del UUID
             const hash = CryptoJS.SHA256(input);
-            const hexResult = hash.toString(CryptoJS.enc.Hex);
-
-            // Mostrar resultado
-            outputEl.textContent = hexResult;
-            resultDiv.classList.remove('hidden');
+            outputEl.textContent = hash.toString(CryptoJS.enc.Hex);
             
-            console.log('UUID procesado exitosamente');
+            resultDiv.classList.remove('hidden');
         } catch (error) {
-            toggleError(uuidInput, errorEl, "Error al procesar: " + error.message);
-            console.error(error);
+            toggleError(uuidInput, errorEl, "Error: " + error.message);
         }
     };
 
-    const handleBase64Conversion = () => {
+    const processBase64 = () => {
         const input = base64Input.value.trim();
         const errorEl = document.getElementById('base64Error');
         const outputEl = document.getElementById('hmacOutput');
         const resultDiv = document.getElementById('hmacResult');
 
-        // Validación
         if (!input) {
             toggleError(base64Input, errorEl, "Campo requerido");
             resultDiv.classList.add('hidden');
@@ -88,39 +122,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            toggleError(base64Input, errorEl, null); // Limpiar errores previos
+            toggleError(base64Input, errorEl, null); // Limpiar error
 
-            // Decodificar Base64 y luego Hash
             const decoded = CryptoJS.enc.Base64.parse(input);
             const hash = CryptoJS.SHA256(decoded);
-            const hexResult = hash.toString(CryptoJS.enc.Hex);
-
-            // Mostrar resultado
-            outputEl.textContent = hexResult;
-            resultDiv.classList.remove('hidden');
+            outputEl.textContent = hash.toString(CryptoJS.enc.Hex);
             
-            console.log('Base64 procesado exitosamente');
+            resultDiv.classList.remove('hidden');
         } catch (error) {
-            toggleError(base64Input, errorEl, "Base64 inválido o mal formado");
-            console.error(error);
+            toggleError(base64Input, errorEl, "Base64 inválido");
         }
     };
 
     // --- Event Listeners ---
     
-    // Clic en botones
-    if(btnConvertUUID) btnConvertUUID.addEventListener('click', handleUuidConversion);
-    if(btnConvertBase64) btnConvertBase64.addEventListener('click', handleBase64Conversion);
+    // 1. Botones de Conversión
+    if(btnConvertUUID) btnConvertUUID.addEventListener('click', processUUID);
+    if(btnConvertBase64) btnConvertBase64.addEventListener('click', processBase64);
 
-    // Limpiar error visual cuando el usuario empieza a escribir
+    // 2. Botones de Copiado (Con parámetros fijos para evitar errores de referencia)
+    if(btnCopyAES) {
+        btnCopyAES.addEventListener('click', () => handleCopy('aesOutput', btnCopyAES, 'text-blue-300'));
+    }
+    if(btnCopyHMAC) {
+        btnCopyHMAC.addEventListener('click', () => handleCopy('hmacOutput', btnCopyHMAC, 'text-purple-300'));
+    }
+
+    // 3. Limpieza de errores al escribir
     uuidInput.addEventListener('input', () => toggleError(uuidInput, document.getElementById('uuidError'), null));
     base64Input.addEventListener('input', () => toggleError(base64Input, document.getElementById('base64Error'), null));
 
-    // Permitir Enter para convertir
-    uuidInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleUuidConversion(); });
-    base64Input.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleBase64Conversion(); });
+    // 4. Tecla Enter
+    uuidInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') processUUID(); });
+    base64Input.addEventListener('keypress', (e) => { if (e.key === 'Enter') processBase64(); });
 
-    // Tecla Escape para limpiar todo (opcional, pero útil)
+    // 5. Tecla Escape (Limpiar todo)
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             uuidInput.value = '';
@@ -132,36 +168,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    console.log('🔐 Crypto Key Converter cargado exitosamente');
+    console.log('🔐 Sistema cargado y listo');
 });
-
-/**
- * Copia texto al portapapeles (Función Global auxiliar)
- * @param {string} elementId - ID del elemento que contiene el texto a copiar
- */
-function copyToClipboard(elementId) {
-    const textElement = document.getElementById(elementId);
-    if (!textElement) return;
-
-    const text = textElement.textContent;
-    
-    navigator.clipboard.writeText(text).then(() => {
-        // Encontrar el botón que disparó el evento para darle feedback
-        // Nota: window.event es una forma rápida de obtener el evento actual
-        const button = window.event.target.closest('button'); 
-        
-        if (button) {
-            const originalText = button.innerHTML; // Guardamos el HTML (icono + texto)
-            button.textContent = '✅ ¡Copiado!';
-            button.classList.add('text-green-400');
-            
-            setTimeout(() => {
-                button.innerHTML = originalText;
-                button.classList.remove('text-green-400');
-            }, 2000);
-        }
-    }).catch(err => {
-        console.error('Error al copiar:', err);
-        alert('No se pudo copiar al portapapeles');
-    });
-}
