@@ -1,150 +1,167 @@
 // ========================================
-// CRYPTO KEY CONVERTER - Main Logic
+// CRYPTO KEY CONVERTER - Lógica Principal
 // ========================================
 
-/**
- * Convierte UUID a AES-256 (SHA-256 hash en hexadecimal)
- */
-function convertUUID() {
-    const input = document.getElementById('uuidInput').value.trim();
+document.addEventListener('DOMContentLoaded', () => {
+    // Referencias a elementos del DOM
+    const uuidInput = document.getElementById('uuidInput');
+    const base64Input = document.getElementById('base64Input');
+    const btnConvertUUID = document.getElementById('btnConvertUUID');
+    const btnConvertBase64 = document.getElementById('btnConvertBase64');
+
+    // --- Funciones de Utilidad Visual ---
+
+    /**
+     * Muestra u oculta errores específicos por campo y altera estilos
+     * @param {HTMLElement} inputElement - El input que tiene el error
+     * @param {HTMLElement} errorElement - El elemento <p> del mensaje de error
+     * @param {string|null} message - El mensaje a mostrar (null para ocultar)
+     */
+    const toggleError = (inputElement, errorElement, message) => {
+        if (message) {
+            // Mostrar error
+            errorElement.querySelector('span').textContent = message;
+            errorElement.classList.remove('hidden');
+            
+            // Estilo de error en el input (borde rojo y fondo rojizo)
+            inputElement.classList.add('border-red-500', 'bg-red-900/10');
+            inputElement.classList.remove('border-blue-400/30', 'border-purple-400/30');
+        } else {
+            // Ocultar error
+            errorElement.classList.add('hidden');
+            
+            // Restaurar estilos originales
+            inputElement.classList.remove('border-red-500', 'bg-red-900/10');
+            // Re-agregar el borde azul o morado según corresponda (simple check por ID)
+            if(inputElement.id === 'uuidInput') {
+                inputElement.classList.add('border-blue-400/30');
+            } else {
+                inputElement.classList.add('border-purple-400/30');
+            }
+        }
+    };
+
+    // --- Lógica de Negocio ---
+
+    const handleUuidConversion = () => {
+        const input = uuidInput.value.trim();
+        const errorEl = document.getElementById('uuidError');
+        const outputEl = document.getElementById('aesOutput');
+        const resultDiv = document.getElementById('aesResult');
+
+        // Validación
+        if (!input) {
+            toggleError(uuidInput, errorEl, "Campo requerido");
+            resultDiv.classList.add('hidden');
+            return;
+        }
+
+        try {
+            toggleError(uuidInput, errorEl, null); // Limpiar errores previos
+            
+            // Generar SHA-256 hash del UUID
+            const hash = CryptoJS.SHA256(input);
+            const hexResult = hash.toString(CryptoJS.enc.Hex);
+
+            // Mostrar resultado
+            outputEl.textContent = hexResult;
+            resultDiv.classList.remove('hidden');
+            
+            console.log('UUID procesado exitosamente');
+        } catch (error) {
+            toggleError(uuidInput, errorEl, "Error al procesar: " + error.message);
+            console.error(error);
+        }
+    };
+
+    const handleBase64Conversion = () => {
+        const input = base64Input.value.trim();
+        const errorEl = document.getElementById('base64Error');
+        const outputEl = document.getElementById('hmacOutput');
+        const resultDiv = document.getElementById('hmacResult');
+
+        // Validación
+        if (!input) {
+            toggleError(base64Input, errorEl, "Campo requerido");
+            resultDiv.classList.add('hidden');
+            return;
+        }
+
+        try {
+            toggleError(base64Input, errorEl, null); // Limpiar errores previos
+
+            // Decodificar Base64 y luego Hash
+            const decoded = CryptoJS.enc.Base64.parse(input);
+            const hash = CryptoJS.SHA256(decoded);
+            const hexResult = hash.toString(CryptoJS.enc.Hex);
+
+            // Mostrar resultado
+            outputEl.textContent = hexResult;
+            resultDiv.classList.remove('hidden');
+            
+            console.log('Base64 procesado exitosamente');
+        } catch (error) {
+            toggleError(base64Input, errorEl, "Base64 inválido o mal formado");
+            console.error(error);
+        }
+    };
+
+    // --- Event Listeners ---
     
-    if (!input) {
-        showError('Por favor ingresa una Key válida');
-        return;
-    }
+    // Clic en botones
+    if(btnConvertUUID) btnConvertUUID.addEventListener('click', handleUuidConversion);
+    if(btnConvertBase64) btnConvertBase64.addEventListener('click', handleBase64Conversion);
 
-    try {
-        // Generar SHA-256 hash del UUID
-        const hash = CryptoJS.SHA256(input);
-        const hexResult = hash.toString(CryptoJS.enc.Hex);
-        
-        // Mostrar resultado
-        document.getElementById('aesOutput').textContent = hexResult;
-        document.getElementById('aesResult').classList.remove('hidden');
-        hideError();
-        
-        console.log('UUID convertido exitosamente');
-        console.log('Longitud:', hexResult.length, 'caracteres');
-    } catch (error) {
-        showError('Error al procesar el UUID: ' + error.message);
-        console.error('Error en convertUUID:', error);
-    }
-}
+    // Limpiar error visual cuando el usuario empieza a escribir
+    uuidInput.addEventListener('input', () => toggleError(uuidInput, document.getElementById('uuidError'), null));
+    base64Input.addEventListener('input', () => toggleError(base64Input, document.getElementById('base64Error'), null));
 
-/**
- * Convierte Base64 a HMAC-256 (SHA-256 hash en hexadecimal)
- */
-function convertBase64() {
-    const input = document.getElementById('base64Input').value.trim();
-    
-    if (!input) {
-        showError('Por favor ingresa un Shared Secret válido');
-        return;
-    }
+    // Permitir Enter para convertir
+    uuidInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleUuidConversion(); });
+    base64Input.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleBase64Conversion(); });
 
-    try {
-        // Decodificar Base64
-        const decoded = CryptoJS.enc.Base64.parse(input);
-        
-        // Generar SHA-256 hash
-        const hash = CryptoJS.SHA256(decoded);
-        const hexResult = hash.toString(CryptoJS.enc.Hex);
-        
-        // Mostrar resultado
-        document.getElementById('hmacOutput').textContent = hexResult;
-        document.getElementById('hmacResult').classList.remove('hidden');
-        hideError();
-        
-        console.log('Base64 convertido exitosamente');
-        console.log('Longitud:', hexResult.length, 'caracteres');
-    } catch (error) {
-        showError('Error al procesar el Base64: ' + error.message);
-        console.error('Error en convertBase64:', error);
-    }
-}
+    // Tecla Escape para limpiar todo (opcional, pero útil)
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            uuidInput.value = '';
+            base64Input.value = '';
+            document.getElementById('aesResult').classList.add('hidden');
+            document.getElementById('hmacResult').classList.add('hidden');
+            toggleError(uuidInput, document.getElementById('uuidError'), null);
+            toggleError(base64Input, document.getElementById('base64Error'), null);
+        }
+    });
+
+    console.log('🔐 Crypto Key Converter cargado exitosamente');
+});
 
 /**
- * Copia texto al portapapeles
+ * Copia texto al portapapeles (Función Global auxiliar)
  * @param {string} elementId - ID del elemento que contiene el texto a copiar
  */
 function copyToClipboard(elementId) {
-    const text = document.getElementById(elementId).textContent;
+    const textElement = document.getElementById(elementId);
+    if (!textElement) return;
+
+    const text = textElement.textContent;
     
     navigator.clipboard.writeText(text).then(() => {
-        // Feedback visual
-        const button = event.target;
-        const originalText = button.textContent;
-        button.textContent = '✅ ¡Copiado!';
+        // Encontrar el botón que disparó el evento para darle feedback
+        // Nota: window.event es una forma rápida de obtener el evento actual
+        const button = window.event.target.closest('button'); 
         
-        setTimeout(() => {
-            button.textContent = originalText;
-        }, 2000);
+        if (button) {
+            const originalText = button.innerHTML; // Guardamos el HTML (icono + texto)
+            button.textContent = '✅ ¡Copiado!';
+            button.classList.add('text-green-400');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('text-green-400');
+            }, 2000);
+        }
     }).catch(err => {
-        showError('Error al copiar: ' + err.message);
-        console.error('Error en copyToClipboard:', err);
+        console.error('Error al copiar:', err);
+        alert('No se pudo copiar al portapapeles');
     });
 }
-
-/**
- * Muestra un mensaje de error
- * @param {string} message - Mensaje de error a mostrar
- */
-function showError(message) {
-    document.getElementById('errorText').textContent = message;
-    document.getElementById('errorMessage').classList.remove('hidden');
-}
-
-/**
- * Oculta el mensaje de error
- */
-function hideError() {
-    document.getElementById('errorMessage').classList.add('hidden');
-}
-
-/**
- * Limpia todos los campos y resultados
- */
-function clearAll() {
-    document.getElementById('uuidInput').value = '';
-    document.getElementById('base64Input').value = '';
-    document.getElementById('aesResult').classList.add('hidden');
-    document.getElementById('hmacResult').classList.add('hidden');
-    hideError();
-    console.log('Campos limpiados');
-}
-
-// ========================================
-// EVENT LISTENERS
-// ========================================
-
-// Limpiar campos al presionar Escape
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        clearAll();
-    }
-});
-
-// Permitir conversión con Enter
-document.addEventListener('DOMContentLoaded', function() {
-    const uuidInput = document.getElementById('uuidInput');
-    const base64Input = document.getElementById('base64Input');
-    
-    if (uuidInput) {
-        uuidInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                convertUUID();
-            }
-        });
-    }
-    
-    if (base64Input) {
-        base64Input.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                convertBase64();
-            }
-        });
-    }
-    
-    console.log('🔐 Crypto Key Converter cargado exitosamente');
-    console.log('Presiona ESC para limpiar campos');
-});

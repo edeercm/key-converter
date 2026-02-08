@@ -9,13 +9,11 @@
 </head>
 <body class="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-4xl font-bold text-white mb-2">🔐 Convertidor de Claves</h1>
             <p class="text-blue-200">Conversión segura client-side - Nada se envía a servidores</p>
         </div>
 
-        <!-- Security Notice -->
         <div class="bg-green-900/30 border border-green-500 rounded-lg p-4 mb-6">
             <div class="flex items-start">
                 <svg class="w-5 h-5 text-green-400 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
@@ -28,10 +26,8 @@
             </div>
         </div>
 
-        <!-- Main Card -->
         <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
             
-            <!-- UUID to AES-256 Section -->
             <div class="mb-8">
                 <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
                     <span class="bg-blue-500 rounded-full w-8 h-8 flex items-center justify-center text-sm mr-3">1</span>
@@ -47,16 +43,20 @@
                             placeholder="8d536241-35w5-4216-8085-39a8d3cwa9be"
                             class="w-full px-4 py-3 bg-white/5 border border-blue-400/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                         />
+                        <p id="uuidError" class="hidden text-red-400 text-sm mt-2 flex items-center animate-pulse">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                            <span>Campo requerido</span>
+                        </p>
                     </div>
                     
                     <button 
-                        onclick="convertUUID()" 
+                        id="btnConvertUUID"
                         class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
-                        Convertir a AES-256
+                        Generar Hash SHA-256 (AES Key)
                     </button>
                     
                     <div id="aesResult" class="hidden">
-                        <label class="block text-green-300 mb-2 font-medium">Resultado AES-256 (64 hex):</label>
+                        <label class="block text-green-300 mb-2 font-medium">Resultado (64 hex):</label>
                         <div class="bg-gray-900/50 rounded-lg p-4 border border-green-500/30">
                             <code id="aesOutput" class="text-green-400 break-all text-sm"></code>
                         </div>
@@ -69,10 +69,8 @@
                 </div>
             </div>
 
-            <!-- Divider -->
             <div class="border-t border-white/20 my-8"></div>
 
-            <!-- Base64 to HMAC-256 Section -->
             <div>
                 <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
                     <span class="bg-purple-500 rounded-full w-8 h-8 flex items-center justify-center text-sm mr-3">2</span>
@@ -88,16 +86,20 @@
                             placeholder="eHL4CvENDChAOqiVskT0r6uS3XKY/RCEi6XE8SzlBic="
                             class="w-full px-4 py-3 bg-white/5 border border-purple-400/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
                         />
+                        <p id="base64Error" class="hidden text-red-400 text-sm mt-2 flex items-center animate-pulse">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                            <span>Campo requerido</span>
+                        </p>
                     </div>
                     
                     <button 
-                        onclick="convertBase64()" 
+                        id="btnConvertBase64"
                         class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
-                        Convertir a HMAC-256
+                        Generar Hash SHA-256 (HMAC Key)
                     </button>
                     
                     <div id="hmacResult" class="hidden">
-                        <label class="block text-green-300 mb-2 font-medium">Resultado HMAC-256 (64 hex):</label>
+                        <label class="block text-green-300 mb-2 font-medium">Resultado (64 hex):</label>
                         <div class="bg-gray-900/50 rounded-lg p-4 border border-green-500/30">
                             <code id="hmacOutput" class="text-green-400 break-all text-sm"></code>
                         </div>
@@ -109,21 +111,14 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Error Message -->
-            <div id="errorMessage" class="hidden mt-6 bg-red-900/30 border border-red-500 rounded-lg p-4">
-                <p class="text-red-300" id="errorText"></p>
-            </div>
         </div>
 
-        <!-- Footer Info -->
         <div class="mt-8 text-center text-blue-300 text-sm">
             <p>🔒 Todas las operaciones son realizadas localmente en tu navegador</p>
             <p class="mt-2 text-blue-400/60">No se almacena ni transmite ninguna información</p>
         </div>
     </div>
 
-    <!-- External JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
